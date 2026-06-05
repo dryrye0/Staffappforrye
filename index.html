@@ -250,7 +250,6 @@
 </div>
 
 <script>
-// Notification Helper Engine
 function triggerSidePopup(title, message, headerColor = "#38bdf8") {
     const notif = document.getElementById('sideNotification');
     const notifTitle = document.getElementById('notifTitle');
@@ -261,20 +260,16 @@ function triggerSidePopup(title, message, headerColor = "#38bdf8") {
     notifTitle.style.color = headerColor;
     notifBody.innerText = message;
 
-    // Show popup
     notif.classList.add('show');
 
-    // Play notification sound file safely
     audio.currentTime = 0;
     audio.play().catch(e => console.log("Audio playback blocked:", e));
 
-    // Dismiss popup after 4 seconds
     setTimeout(() => {
         notif.classList.remove('show');
     }, 4000);
 }
 
-// Wait for the user to click the webpage before starting notifications
 function initNotificationsOnInteraction() {
     triggerSidePopup("API STATUS", "Loading API...", "#eab308");
 
@@ -324,11 +319,11 @@ async function submit(){
     status.innerText = "Sending application data...";
 
     try {
-        let res = await fetch("https://ryesden-staff-backend.onrender.com/api/submit",{
+        // Changed URL to locally route directly through Render
+        let res = await fetch("/api/submit",{
             method:"POST",
             headers:{
-                "Content-Type":"application/json",
-                "x-api-key": "dd102109ddqqaassADMIN"
+                "Content-Type":"application/json"
             },
             body:JSON.stringify({
                 username: u1.value,
