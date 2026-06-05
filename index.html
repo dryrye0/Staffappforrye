@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Portal - Application Form</title>
@@ -158,7 +156,6 @@
             font-weight: 500;
         }
 
-        /* Slide-out Side Notification Popup styles */
         .notification-center {
             position: fixed;
             top: 24px;
@@ -319,7 +316,6 @@ async function submit(){
     status.innerText = "Sending application data...";
 
     try {
-        // Changed URL to locally route directly through Render
         let res = await fetch("/api/submit",{
             method:"POST",
             headers:{
@@ -338,8 +334,8 @@ async function submit(){
 
         if(data.ok) {
             status.style.color = "#16a34a";
-            status.innerText = `Application submitted successfully! Result: ${data.result}`;
-            triggerSidePopup("TRANSMISSION SUCCESS", `Form successfully captured. Result: ${data.result}`, "#4ade80");
+            status.innerText = `Application submitted successfully! Status: ${data.result}`;
+            triggerSidePopup("TRANSMISSION SUCCESS", `Form successfully captured. Status: ${data.result}`, "#4ade80");
         } else {
             status.style.color = "#dc2626";
             status.innerText = "Submission rejected by the server.";
@@ -355,5 +351,4 @@ async function submit(){
     }
 }
 </script>
-</body>
-</html>
+</body></html>
