@@ -27,7 +27,7 @@ client.on('interactionCreate', async (interaction) => {
         const helpEmbed = new EmbedBuilder()
             .setColor('#5865F2') // Discord Blurple color (you can change this hex code)
             .setTitle('⚠️ System Status')
-            .setDescription('.....uh.....um....mmmmmm, my master aint set me up gng, srry bout dat, TELL EM DOH>;3')
+            .setDescription('Bot Has Nuh Cmds, U Stupi Youngin, just a staff appilcation thingy')
             .setTimestamp();
 
         await interaction.reply({ embeds: [helpEmbed] });
