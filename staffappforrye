@@ -276,19 +276,15 @@ function triggerSidePopup(title, message, headerColor = "#38bdf8") {
 
 // Wait for the user to click the webpage before starting notifications
 function initNotificationsOnInteraction() {
-    // 1. Instantly fire the first notification on user click
     triggerSidePopup("API STATUS", "Loading API...", "#eab308");
 
-    // 2. Schedule the second notification exactly 5 seconds later
     setTimeout(() => {
         triggerSidePopup("API STATUS", "Loaded. Systems operational.", "#4ade80");
     }, 5000);
 
-    // Remove the click listener so clicking again doesn't restart the loop
     document.removeEventListener('click', initNotificationsOnInteraction);
 }
 
-// Attach the interaction trigger to the document
 document.addEventListener('click', initNotificationsOnInteraction);
 
 async function submit(){
@@ -328,7 +324,7 @@ async function submit(){
     status.innerText = "Sending application data...";
 
     try {
-        let res = await fetch("http://localhost:3000/api/submit",{
+        let res = await fetch("https://ryesden-staff-backend.onrender.com/api/submit",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({
