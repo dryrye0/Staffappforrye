@@ -6,14 +6,16 @@ const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 app.use(express.static(__dirname));
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages] });
 
-// IDs HERE
+// ====== CONFIGURATION ======
 const REVIEW_CHANNEL_ID = "1512296048037593220"; 
 const STAFF_ROLE_ID = "1512203928702292077"; 
+const LOGO_URL = "https://i.ibb.co/svL9rTpk/Screenshot-2026-06-05-033121-removebg-preview.png"; 
+const HANDBOOK_CHANNEL_ID = "1512375254587146342"; 
+// ===========================
 
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: __dirname });
@@ -22,7 +24,6 @@ app.get('/', (req, res) => {
 app.post('/api/submit', async (req, res) => {
     const { username, age, timezone, experience, reason } = req.body;
 
-    // SECURITY GUARD: If any data is missing or blank, instantly reject it ;3
     if (!username || !age || !timezone || !experience || !reason || isNaN(username)) {
         return res.status(400).json({ ok: false, result: "INVALID_DATA_PAYLOAD" });
     }
@@ -56,7 +57,7 @@ app.post('/api/submit', async (req, res) => {
         );
 
         await channel.send({ embeds: [embed], components: [row] });
-        res.status(200).json({ ok: true, result: "ACCEPTED" });
+        res.status(200).json({ ok: true, result: "PENDING" });
 
     } catch (error) {
         console.error("Error processing application:", error);
@@ -80,7 +81,14 @@ client.on('interactionCreate', async (interaction) => {
             }
 
             if (applicant) {
-                await applicant.send("🎉 Congratulations! Your staff application has been accepted. Welcome to the team!").catch(() => null);
+                const welcomeEmbed = new EmbedBuilder()
+                    .setTitle("🎉 Application Accepted!")
+                    .setDescription(`Welcome to the team! Your staff application has been approved.\n\nPlease head over to <#${HANDBOOK_CHANNEL_ID}> to read through our guidelines and begin training.`)
+                    .setColor(0x22c55e)
+                    .setThumbnail(LOGO_URL)
+                    .setTimestamp();
+
+                await applicant.send({ embeds: [welcomeEmbed] }).catch(() => null);
             }
 
             await interaction.update({
