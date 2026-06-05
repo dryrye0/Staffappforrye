@@ -1,103 +1,110 @@
-<html lang="en"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Portal - Closed</title>
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --accent-danger: #ef4444;
-            --border-color: #334155;
-        }
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static(__dirname));
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: __dirname });
+});
 
-        .container {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 550px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            text-align: center;
-        }
-
-        .error-code {
-            font-family: monospace;
-            font-size: 14px;
-            color: var(--accent-danger);
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        h2 {
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #ffffff;
-        }
-
-        .message-box {
-            background-color: #7f1d1d33;
-            border: 1px solid #f8717144;
-            color: #f87171;
-            padding: 20px;
-            border-radius: 8px;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .contact-info {
-            font-size: 14px;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
-        }
-
-        .username-tag {
-            background: #334155;
-            color: #ffffff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-weight: 600;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="error-code">ERR, CLOSED. 000</div>
-    <h2>Applications Closed</h2>
+// OPEN MODE: Processes application submissions and sends them to a staff channel via Webhook
+app.post('/api/submit', async (req, res) => {
+    const { username, age, timezone, experience, reason } = req.body;
     
-    <div class="message-box">
-        We are closed and not accepting applicants right now.
-    </div>
+    // Replace this with your actual Discord Webhook URL
+    const webhookUrl = "https://discord.com/api/webhooks/1512309447698157703/IiNWTlXAP1ygpcG8Szp70vvazwjh7SKyPg-gmNVYBotyiZF9230NZMghrTIhmMF0fjVf";
 
-    <div class="contact-info">
-        Please contact the staff team, or the site's owner: <span class="username-tag">@dryrye</span> on Discord.
-    </div>
-</div>
+    // Double check that all form fields were received properly
+    if (!username || !age || !timezone || !experience || !reason) {
+        return res.status(400).json({ ok: false, result: "MISSING_FIELDS" });
+    }
 
-</body></html>
+    try {
+        // Format a beautiful embed to send to your staff channel
+        const applicationEmbed = {
+            title: "📝 New Staff Application Received",
+            color: 0x2563eb, // Matching your website accent color
+            fields: [
+                { name: "👤 Applicant User ID", value: `<@${username}> (ID: ${username})`, inline: true },
+                { name: "🎂 Age", value: String(age), inline: true },
+                { name: "🌍 Timezone", value: String(timezone), inline: true },
+                { name: "🛠️ Relevant Experience", value: String(experience) },
+                { name: "❓ Motivation / Why join?", value: String(reason) }
+            ],
+            timestamp: new Date().toISOString()
+        };
+
+        // Send the payload off to the Discord channel
+        await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ embeds: [applicationEmbed] })
+        });
+
+        // Let the website know everything went perfectly
+        res.status(200).json({ ok: true, result: "SUBMITTED" });
+
+    } catch (error) {
+        console.error("Error processing application:", error);
+        res.status(500).json({ ok: false, result: "SERVER_ERROR" });
+    }
+});
+
+// Official Slash Command Listener
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === 'help') {
+        const helpEmbed = new EmbedBuilder()
+            .setColor('#5865F2')
+            .setTitle('⚠️ System Status')
+            .setDescription('Bot Has Nuh Cmds, U Stupi Youngin, just a staff application thingy')
+            .setTimestamp();
+
+        await interaction.reply({ embeds: [helpEmbed] });
+    }
+});
+
+// Register Slash Commands and Set Presence when bot connects
+client.once('ready', async () => {
+    console.log(`🤖 Logged in as ${client.user.tag}!`);
+    
+    client.user.setPresence({
+        activities: [{ 
+            name: 'bot hosted by RyesBots', 
+            type: 3 
+        }],
+        status: 'online', 
+    });
+
+    const commands = [
+        new SlashCommandBuilder()
+            .setName('help')
+            .setDescription('Get help regarding the system')
+    ].map(command => command.toJSON());
+
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
+    try {
+        console.log('Started refreshing application (/) commands.');
+        await rest.put(
+            Routes.applicationCommands(client.user.id),
+            { body: commands },
+        );
+        console.log('Successfully reloaded application (/) commands.');
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+client.login(process.env.DISCORD_TOKEN);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Backend live (Open Mode) on port ${PORT}`));
