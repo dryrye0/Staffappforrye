@@ -30,13 +30,13 @@ const client = new Client({
     ] 
 });
 
-// ====== CONFIGURATION ======
-const REVIEW_CHANNEL_ID = "1512296048037593220"; 
-const STAFF_ROLE_ID = "1512203928702292077"; 
-const HANDBOOK_CHANNEL_ID = "1512375254587146342";
-const PANELS_CHANNEL_ID = "1512290092662784152";
+// ====== CONFIGURATION (Reads from environment variables or uses your defaults) ======
+const REVIEW_CHANNEL_ID = process.env.REVIEW_CHANNEL_ID || "1512296048037593220"; 
+const STAFF_ROLE_ID = process.env.STAFF_ROLE_ID || "1512203928702292077"; 
+const HANDBOOK_CHANNEL_ID = process.env.HANDBOOK_CHANNEL_ID || "1512375254587146342";
+const PANELS_CHANNEL_ID = process.env.PANELS_CHANNEL_ID || "1512290092662784152";
 const LOGO_URL = "https://i.ibb.co/svL9rTpk/Screenshot-2026-06-05-033121-removebg-preview.png"; 
-// ===========================
+// ===================================================================================
 
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: __dirname });
@@ -107,18 +107,19 @@ client.on('interactionCreate', async (interaction) => {
     // 2. Handle Dropdown Ticket Selections
     if (interaction.isStringSelectMenu()) {
         if (interaction.customId === 'ticket_category_select') {
-            await interaction.deferReply({ flags: [64] }); // Fixed deprecation (64 = Ephemeral)
+            await interaction.deferReply({ flags: [64] }); // 64 = Ephemeral flag
 
             const selectedValue = interaction.values[0];
             const guild = interaction.guild;
 
+            if (!guild) return;
+
             try {
-                // Set descriptive titles based on dropdown choice
                 let ticketLabel = "general";
                 if (selectedValue === "report_player") ticketLabel = "report";
                 if (selectedValue === "staff_help") ticketLabel = "staff-assistance";
 
-                // Generate private ticket channel visible only to applicant and staff
+                // Generate private ticket channel
                 const ticketChannel = await guild.channels.create({
                     name: `ticket-${ticketLabel}-${interaction.user.username}`,
                     type: ChannelType.GuildText,
@@ -180,7 +181,6 @@ client.on('interactionCreate', async (interaction) => {
                     await applicant.send({ embeds: [welcomeEmbed] }).catch(() => null);
                 }
 
-                // Uses update directly without double calling callbacks to prevent Error 40060
                 await interaction.update({
                     content: `✅ **Application Approved** by ${interaction.user.tag}`,
                     embeds: interaction.message.embeds,
@@ -205,7 +205,7 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// Changed from 'ready' to 'clientReady' to match discord.js v14/v15 standards
+// Runs when bot establishes connection with Discord gateway
 client.once('clientReady', async () => {
     console.log(`🤖 Logged in as ${client.user.tag}!`);
     
@@ -241,6 +241,7 @@ client.once('clientReady', async () => {
             const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "🎟️ Support Portal");
 
             if (!alreadySent) {
+                // 1. Send the primary dropdown support panel embed
                 const ticketEmbed = new EmbedBuilder()
                     .setTitle("🎟️ Support Portal")
                     .setDescription("Need assistance? Select the category that best matches your issue from the dropdown menu below.\n\n⚠️ *Please only open one ticket at a time. Creating troll tickets may result in moderation action.*")
@@ -260,7 +261,14 @@ client.once('clientReady', async () => {
 
                 const actionRow = new ActionRowBuilder().addComponents(selectMenu);
                 await panelsChannel.send({ embeds: [ticketEmbed], components: [actionRow] });
-                console.log("✅ Tickets panel deployed.");
+
+                // 2. Send the secondary web application link embed panel directly underneath it
+                const linkEmbed = new EmbedBuilder()
+                    .setDescription("📝 **Ready to join our team?**\nClick the link below to fill out your official staff application.\n\n🔗 **[Apply Here!](https://ryesden-staff-backend.onrender.com/)**")
+                    .setColor("#57FFEF");
+
+                await panelsChannel.send({ embeds: [linkEmbed] });
+                console.log("✅ Tickets and portal link panels deployed successfully.");
             }
         }
     } catch (e) {
@@ -281,5 +289,5 @@ client.once('clientReady', async () => {
 
 client.login(process.env.DISCORD_TOKEN);
 
-const PORT = process.env.PORT || 10000; // Updated to 10000 matching Render port binding defaults
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Backend live (Open Mode) on port ${PORT}`));
