@@ -299,10 +299,10 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.once('clientReady', async () => {
-    console.log(`🤖 Logged in as ${client.user.tag}!`);
+    console.log(`🦴 Logged in as ${client.user.tag}!`);
     
     client.user.setPresence({
-        activities: [{ name: 'bot hosted by RyesBots', type: 3 }],
+        activities: [{ name: 'bot hosted by RyesBots | V.1.3.2', type: 3 }],
         status: 'online', 
     });
 
@@ -397,10 +397,10 @@ client.once('clientReady', async () => {
 
                 const trainingMenu = new StringSelectMenuBuilder()
                     .setCustomId('training_request_select')
-                    .setPlaceholder('Select a session type to initiate...')
+                    .setPlaceholder('Select a session type to continue...')
                     .addOptions(
-                        new StringSelectMenuOptionBuilder().setLabel('Request Mod Training (MT)').setDescription('Schedule live command operations and protocol drills.').setValue('mod_training').setEmoji('⚔️'),
-                        new StringSelectMenuOptionBuilder().setLabel('Request Staff Retraining').setDescription('Review staff instructions and operational updates.').setValue('staff_retraining').setEmoji('🔄'),
+                        new StringSelectMenuOptionBuilder().setLabel('Request Mod Training (MT)').setDescription('Schedule a training with an admin.').setValue('mod_training').setEmoji('🦴'),
+                        new StringSelectMenuOptionBuilder().setLabel('Request Staff Retraining').setDescription('Review.').setValue('staff_retraining').setEmoji('🐾'),
                         new StringSelectMenuOptionBuilder().setLabel('None / Clear Selection').setDescription('Reset the layout choice option.').setValue('clear_selection').setEmoji('❌')
                     );
 
