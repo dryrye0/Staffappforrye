@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 const app = express();
 app.use(cors());
@@ -23,7 +23,14 @@ client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'help') {
-        await interaction.reply(".....uh.....um....mmmmmm, my master aint set me up gng, srry bout dat, TELL EM DOH>;3");
+        // Build the embed response
+        const helpEmbed = new EmbedBuilder()
+            .setColor('#5865F2') // Discord Blurple color (you can change this hex code)
+            .setTitle('⚠️ System Status')
+            .setDescription('.....uh.....um....mmmmmm, my master aint set me up gng, srry bout dat, TELL EM DOH>;3')
+            .setTimestamp();
+
+        await interaction.reply({ embeds: [helpEmbed] });
     }
 });
 
