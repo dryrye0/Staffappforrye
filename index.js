@@ -7,7 +7,7 @@ app.use(cors()); // Allows your HTML file to communicate with this backend safel
 app.use(express.json());
 
 // REPLACE THIS WITH YOUR ACTUAL DISCORD WEBHOOK URL
-const DISCORD_WEBHOOK_URL = "YOUR_DISCORD_WEBHOOK_URL_HERE";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1512309447698157703/IiNWTlXAP1ygpcG8Szp70vvazwjh7SKyPg-gmNVYBotyiZF9230NZMghrTIhmMF0fjVf";
 
 app.post('/api/submit', async (req, res) => {
     const { username, age, timezone, experience, reason } = req.body;
