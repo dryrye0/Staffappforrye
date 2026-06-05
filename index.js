@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Tells Render to look in the main folder for files
 app.use(express.static(__dirname));
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages] });
@@ -16,13 +15,17 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 const REVIEW_CHANNEL_ID = "1512296048037593220"; 
 const STAFF_ROLE_ID = "1512203928702292077"; 
 
-// Sends your HTML form when someone loads the link
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: __dirname });
 });
 
 app.post('/api/submit', async (req, res) => {
     const { username, age, timezone, experience, reason } = req.body;
+
+    // SECURITY GUARD: If any data is missing or blank, instantly reject it
+    if (!username || !age || !timezone || !experience || !reason || isNaN(username)) {
+        return res.status(400).json({ ok: false, result: "INVALID_DATA_PAYLOAD" });
+    }
 
     try {
         const channel = await client.channels.fetch(REVIEW_CHANNEL_ID);
@@ -32,11 +35,11 @@ app.post('/api/submit', async (req, res) => {
             .setTitle("📄 New Staff Application Submitted")
             .setColor(0x2563eb)
             .addFields(
-                { name: "Discord User ID", value: username || "N/A", inline: true },
-                { name: "Age", value: age || "N/A", inline: true },
-                { name: "Timezone", value: timezone || "N/A", inline: true },
-                { name: "Relevant Experience", value: experience || "N/A" },
-                { name: "Motivation / Why join?", value: reason || "N/A" }
+                { name: "Discord User ID", value: username, inline: true },
+                { name: "Age", value: age, inline: true },
+                { name: "Timezone", value: timezone, inline: true },
+                { name: "Relevant Experience", value: experience },
+                { name: "Motivation / Why join?", value: reason }
             )
             .setFooter({ text: `Applicant ID: ${username}` })
             .setTimestamp();
