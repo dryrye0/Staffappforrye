@@ -33,6 +33,7 @@ const client = new Client({
 // ====== CONFIGURATION ======
 const REVIEW_CHANNEL_ID = process.env.REVIEW_CHANNEL_ID || "1512296048037593220"; 
 const STAFF_ROLE_ID = process.env.STAFF_ROLE_ID || "1512203928702292077"; 
+const SUPPORT_ROLE_ID = "1512203928719327457"; // Updated Support Team Role
 const HANDBOOK_CHANNEL_ID = process.env.HANDBOOK_CHANNEL_ID || "1512375254587146342";
 const PANELS_CHANNEL_ID = process.env.PANELS_CHANNEL_ID || "1512290092662784152";
 const RULES_CHANNEL_ID = process.env.RULES_CHANNEL_ID || "1512527598822097008";
@@ -120,17 +121,26 @@ client.on('interactionCreate', async (interaction) => {
                     permissionOverwrites: [
                         { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
                         { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks] },
-                        { id: STAFF_ROLE_ID, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks] }
+                        { id: SUPPORT_ROLE_ID, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks] }
                     ],
                 });
 
                 const welcomeTicketEmbed = new EmbedBuilder()
                     .setTitle(`🎟️ Ticket Opened - ${ticketLabel.toUpperCase()}`)
-                    .setDescription(`Hello ${interaction.user}, thank you for contacting support. Support staff (<@&${STAFF_ROLE_ID}>) will be with you shortly.\n\nPlease describe your issue in detail here.`)
+                    .setDescription(`Hello ${interaction.user}, thank you for contacting support. Our Support Team (<@&${SUPPORT_ROLE_ID}>) will be with you shortly.\n\nPlease describe your issue in detail here.`)
                     .setColor("#57FFEF")
                     .setTimestamp();
 
-                await ticketChannel.send({ embeds: [welcomeTicketEmbed] });
+                // Create a close ticket option inside the channel
+                const closeRow = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('close_ticket_channel')
+                        .setLabel('Close Ticket')
+                        .setEmoji('🔒')
+                        .setStyle(ButtonStyle.Danger)
+                );
+
+                await ticketChannel.send({ embeds: [welcomeTicketEmbed], components: [closeRow] });
                 await interaction.editReply({ content: `✅ Ticket opened successfully! Check your new channel here: ${ticketChannel}` });
 
             } catch (err) {
@@ -142,6 +152,19 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.isButton()) {
+        // Handle Ticket Closing Button Placement
+        if (interaction.customId === 'close_ticket_channel') {
+            await interaction.reply({ content: "🔒 This ticket will be deleted in 5 seconds..." });
+            setTimeout(async () => {
+                try {
+                    await interaction.channel.delete();
+                } catch (err) {
+                    console.error("Failed to delete channel:", err);
+                }
+            }, 5000);
+            return;
+        }
+
         if (interaction.customId === 'verify_rules_agree') {
             await interaction.deferReply({ flags: [64] });
 
@@ -227,7 +250,7 @@ client.once('clientReady', async () => {
 
             if (!alreadySent) {
                 const handbookEmbed = new EmbedBuilder()
-                    .setTitle("📖 sᴛᴀғғ-ʜᴀɴᴅʙᴏᴏᴋ")
+                    .setTitle("📖 sᴛᴀғғ-ʜᴀɴʙᴏᴏᴋ")
                     .setDescription(
                         "Welcome to the official staff team directory. All active team members are strictly required to read, understand, and abide by our core operational rules:\n\n" +
                         "1️⃣ **Team Communication**\n" +
@@ -295,53 +318,51 @@ client.once('clientReady', async () => {
             if (!alreadySent) {
                 const rulesEmbed = new EmbedBuilder()
                     .setTitle("📜 COMMUNITY RULES & GUIDELINES")
-                    .setDescription("Please review and follow the official regulations of the server. Failure to follow these codes will result in structural moderation actions.")
+                    .setDescription("Please review and follow the official regulations of the server. Failure to follow these codes will result in structural moderation actions.\n\n" +
+                        "**§ 1.0.1** - Approach all community members with mutual respect. Harassment, insults, and personal attacks are strictly prohibited.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.2** - Do not start, encourage, or participate in drama, arguments, or toxic behavior within public text or voice channels.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.3** - Spamming, flooding chat rooms with repetitive characters/emojis, or text walling is prohibited.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.4** - Unsolicited self-promotion, advertising links, or direct messaging server invites to members will result in an immediate ban.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.5** - Do not post, upload, or link any explicit, offensive, or harmful material inside general channels.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.6** - Trolling, provoking staff, or intentionally disrupting the peace of conversational areas is disallowed.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.7** - Do not utilize excessive sarcasm, slurs, or aggressive language aimed at degrading other users.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.8** - All actions, conversations, and hosted files must strictly comply with the global Discord Terms of Service.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.0.9** - Do not distribute, discuss, link, or promote software piracy, cracked applications, or illegal downloads.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.0** - Respect media release dates. Do not post spoilers regarding games, anime, or films within a two-week window of launch.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.1** - Do not share, promote, or detail methods regarding game exploits, online cheats, hacks, or trainers.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.2** - Keep text topics relevant to their designated channels (e.g., bot commands belong strictly inside the bot channel).\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.3** - Do not bypass filters or use alternative spelling variations to evade automoderation configurations.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.4** - Do not impersonate server developers, administrators, moderators, or high-profile public entities.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.5** - Mini-modding (acting as staff or issuing public ultimatums when you do not hold a staff position) is not permitted.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.6** - Do not continuously tag or mention staff members without an urgent, verifiable reason.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.7** - Keep all usernames, nicknames, status indicators, and profile avatars appropriate for a public space.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.8** - Voice channel soundboards, voice changers, and loud noises meant to disrupt active connections are banned.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.1.9** - Do not upload or execute script links meant to scrape data or extract private identity information from users.\n" +
+                        "────────────────────────────────────────\n" +
+                        "**§ 1.2.0** - Decisions made by senior administration regarding rule edge cases or interpretations remain final unless foundership changes that."
+                    )
                     .setImage("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F06%2Fd5%2Fda%2F06d5dac46000d258bcf1a3e15a714f4d.jpg&f=1&nofb=1&ipt=4f41f217d33ad3b91fde0670a657bac85108b2d3a2130d6e950a7860ea66daa3")
                     .setColor("#1A1A1A")
-                    .addFields(
-                        { name: "§ 1.0.1", value: "Approach all community members with mutual respect. Harassment, insults, and personal attacks are strictly prohibited." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.2", value: "Do not start, encourage, or participate in drama, arguments, or toxic behavior within public text or voice channels." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.3", value: "Spamming, flooding chat rooms with repetitive characters/emojis, or text walling is prohibited." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.4", value: "Unsolicited self-promotion, advertising links, or direct messaging server invites to members will result in an immediate ban." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.5", value: "Do not post, upload, or link any explicit, offensive, or harmful material inside general channels." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.6", value: "Trolling, provoking staff, or intentionally disrupting the peace of conversational areas is disallowed." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.7", value: "Do not utilize excessive sarcasm, slurs, or aggressive language aimed at degrading other users." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.8", value: "All actions, conversations, and hosted files must strictly comply with the global Discord Terms of Service." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.0.9", value: "Do not distribute, discuss, link, or promote software piracy, cracked applications, or illegal downloads." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.0", value: "Respect media release dates. Do not post spoilers regarding games, anime, or films within a two-week window of launch." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.1", value: "Do not share, promote, or detail methods regarding game exploits, online cheats, hacks, or trainers." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.2", value: "Keep text topics relevant to their designated channels (e.g., bot commands belong strictly inside the bot channel)." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.3", value: "Do not bypass filters or use alternative spelling variations to evade automoderation configurations." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.4", value: "Do not impersonate server developers, administrators, moderators, or high-profile public entities." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.5", value: "Mini-modding (acting as staff or issuing public ultimatums when you do not hold a staff position) is not permitted." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.6", value: "Do not continuously tag or mention staff members without an urgent, verifiable reason." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.7", value: "Keep all usernames, nicknames, status indicators, and profile avatars appropriate for a public space." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.8", value: "Voice channel soundboards, voice changers, and loud noises meant to disrupt active connections are banned." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.1.9", value: "Do not upload or execute script links meant to scrape data or extract private identity information from users." },
-                        { name: "\u200B", value: "────────────────────────────────────────" },
-                        { name: "§ 1.2.0", value: "Decisions made by senior administration regarding rule edge cases or interpretations remain final." }
-                    )
-                    .setFooter({ text: "Server Governance Code", iconURL: LOGO_URL })
+                    .setFooter({ text: "Server Rules", iconURL: "https://i.ibb.co/mr6BJdCs/Screenshot-2026-06-05-033110-removebg-preview.png" })
                     .setTimestamp();
-
                 await rulesChannel.send({ embeds: [rulesEmbed] });
 
                 const acceptRow = new ActionRowBuilder().addComponents(
@@ -356,7 +377,7 @@ client.once('clientReady', async () => {
                     components: [acceptRow]
                 });
 
-                console.log("✅ 20-part rules matrix (with borders) and verification agreement deployed.");
+                console.log("✅ 20-part rules description block and verification agreement deployed successfully.");
             }
         }
     } catch (e) {
