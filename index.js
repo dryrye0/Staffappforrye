@@ -97,7 +97,7 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.commandName === 'help') {
             const helpEmbed = new EmbedBuilder()
                 .setColor('#5865F2')
-                .setTitle('⚠️ System Status')
+                .setTitle('Cmd info')
                 .setDescription('Bot Has Nuh Cmds, U Stupi Youngin, just a staff application thingy')
                 .setTimestamp();
 
@@ -137,7 +137,7 @@ client.on('interactionCreate', async (interaction) => {
             await interaction.update({
                 content: `✅ **Application Approved** by ${interaction.user.tag}`,
                 embeds: interaction.message.embeds,
-                components: [] // Removes buttons so application cannot be double processed
+                components: []
             });
 
         } else if (action === 'decline') {
@@ -158,20 +158,19 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// Setup bot environment settings upon successful login
+
 client.once('ready', async () => {
     console.log(`🤖 Logged in as ${client.user.tag}!`);
     
-    // Set custom status
+
     client.user.setPresence({
         activities: [{ 
             name: 'bot hosted by RyesBots', 
-            type: 3 // Watching
+            type: 3
         }],
         status: 'online', 
     });
 
-    // Register /help application command schema
     const commands = [
         new SlashCommandBuilder()
             .setName('help')
@@ -192,7 +191,6 @@ client.once('ready', async () => {
     }
 });
 
-// Authenticate Bot Client using environment token
 client.login(process.env.DISCORD_TOKEN);
 
 const PORT = process.env.PORT || 3000;
