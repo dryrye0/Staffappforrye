@@ -11,7 +11,7 @@ app.use(express.static(__dirname));
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages] });
 
-// REMEMBER TO PUT YOUR ACTUAL DISCORD IDs HERE
+// IDs HERE
 const REVIEW_CHANNEL_ID = "1512296048037593220"; 
 const STAFF_ROLE_ID = "1512203928702292077"; 
 
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 app.post('/api/submit', async (req, res) => {
     const { username, age, timezone, experience, reason } = req.body;
 
-    // SECURITY GUARD: If any data is missing or blank, instantly reject it
+    // SECURITY GUARD: If any data is missing or blank, instantly reject it ;3
     if (!username || !age || !timezone || !experience || !reason || isNaN(username)) {
         return res.status(400).json({ ok: false, result: "INVALID_DATA_PAYLOAD" });
     }
