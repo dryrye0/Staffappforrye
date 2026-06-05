@@ -37,7 +37,7 @@ const SUPPORT_ROLE_ID = "1512203928719327457";
 const HANDBOOK_CHANNEL_ID = process.env.HANDBOOK_CHANNEL_ID || "1512375254587146342";
 const PANELS_CHANNEL_ID = process.env.PANELS_CHANNEL_ID || "1512290092662784152";
 const RULES_CHANNEL_ID = process.env.RULES_CHANNEL_ID || "1512527598822097008";
-const TRAINING_CHANNEL_ID = "1512533850213978263"; // Your Training Request Channel
+const TRAINING_CHANNEL_ID = "1512533850213978263"; 
 const LOGO_URL = "https://i.ibb.co/svL9rTpk/Screenshot-2026-06-05-033121-removebg-preview.png"; 
 // ==========================
 
@@ -104,7 +104,6 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.isStringSelectMenu()) {
-        // Handle Ticket Portal Choices
         if (interaction.customId === 'ticket_category_select') {
             await interaction.deferReply({ flags: [64] });
 
@@ -150,31 +149,36 @@ client.on('interactionCreate', async (interaction) => {
             }
         }
 
-        // Handle Training Menu Choices
         if (interaction.customId === 'training_request_select') {
-            await interaction.deferReply({ flags: [64] });
-
             const selectedValue = interaction.values[0];
+
+            // If user clicked "None", acknowledge silently, clear the selection look, and exit
+            if (selectedValue === "clear_selection") {
+                await interaction.reply({ content: "🧹 Selection cleared. You can now choose a training session whenever you're ready!", flags: [64] });
+                return;
+            }
+
+            await interaction.deferReply({ flags: [64] });
             const guild = interaction.guild;
             if (!guild) return;
 
             try {
                 let sessionLabel = "mod-training";
                 let sessionTitle = "⚔️ Mod Training Session";
-                let sessionDesc = "A senior staff trainer (<@&" + SUPPORT_ROLE_ID + ">) will be with you shortly to begin your text or VC orientation.\n\n" +
-                                  "**🎯 Session Breakdown:**\n" +
-                                  "┌ 🛠️ Command configurations & logs syntax.\n" +
-                                  "├ 📋 Server policy execution limits.\n" +
-                                  "└ 🛑 Scenario drills & handling rule breakers.";
+                let sessionDesc = "A senior trainer (<@&" + SUPPORT_ROLE_ID + ">) will be with you shortly to handle your system setup and orientation.\n\n" +
+                                  "**🎯 Here is what we will walk through:**\n" +
+                                  "┌ 🛠️ Command configurations & log syntax.\n" +
+                                  "├ 📋 Server policy guidelines.\n" +
+                                  "└ 🛑 Scenario mock drills & live demonstrations.";
 
                 if (selectedValue === "staff_retraining") {
                     sessionLabel = "retraining";
                     sessionTitle = "🔄 Staff Retraining Session";
-                    sessionDesc = "Your retraining request has been submitted. A supervisor (<@&" + SUPPORT_ROLE_ID + ">) will assist you here.\n\n" +
-                                  "**🎯 Session Breakdown:**\n" +
-                                  "┌ 📉 Performance and error correction review.\n" +
-                                  "├ 🔄 Updated rules walkthrough.\n" +
-                                  "└ 💬 Q&A regarding live moderation cases.";
+                    sessionDesc = "Your request for retraining has been submitted. A team supervisor (<@&" + SUPPORT_ROLE_ID + ">) will be here to guide you.\n\n" +
+                                  "**🎯 Here is what we will look over:**\n" +
+                                  "┌ 📉 Performance corrections & adjustment reviews.\n" +
+                                  "├ 🔄 Refresher on updated regulations.\n" +
+                                  "└ 💬 Open Q&A regarding community safety.";
                 }
 
                 const trainingChannel = await guild.channels.create({
@@ -189,7 +193,7 @@ client.on('interactionCreate', async (interaction) => {
 
                 const sessionEmbed = new EmbedBuilder()
                     .setTitle(sessionTitle)
-                    .setDescription(`Welcome ${interaction.user}!\n\n${sessionDesc}\n\n*Please type below whether you prefer completing this session over voice chat or over text while you wait.*`)
+                    .setDescription(`Welcome ${interaction.user}!\n\n${sessionDesc}\n\n*Please type out below whether you prefer completing this session over voice chat (VC) or standard text chat while you wait.*`)
                     .setColor("#464DE0")
                     .setTimestamp();
 
@@ -202,7 +206,7 @@ client.on('interactionCreate', async (interaction) => {
                 );
 
                 await trainingChannel.send({ content: `${interaction.user} | <@&${SUPPORT_ROLE_ID}>`, embeds: [sessionEmbed], components: [closeRow] });
-                await interaction.editReply({ content: `✅ Training session initialized! Head over to your room here: ${trainingChannel}` });
+                await interaction.editReply({ content: `✅ Training session initialized! Head over to your channel here: ${trainingChannel}` });
 
             } catch (err) {
                 console.error("Error creating training channel:", err);
@@ -238,7 +242,7 @@ client.on('interactionCreate', async (interaction) => {
                 }
 
                 await member.roles.add(VERIFIED_ROLE_ID);
-                await interaction.editReply({ content: "✅ Rules acknowledged!" });
+                await interaction.editReply({ content: "✅ Rules acknowledged! The community role has been assigned. Welcome to the server!" });
                 
             } catch (err) {
                 console.error("Verification assignment error:", err);
@@ -303,7 +307,6 @@ client.once('clientReady', async () => {
     });
 
     try {
-        // --- Deployment: Handbook Panel ---
         const handbookChannel = await client.channels.fetch(HANDBOOK_CHANNEL_ID).catch(() => null);
         if (handbookChannel) {
             const messages = await handbookChannel.messages.fetch({ limit: 10 });
@@ -336,7 +339,6 @@ client.once('clientReady', async () => {
             }
         }
 
-        // --- Deployment: Support Portal Panel ---
         const panelsChannel = await client.channels.fetch(PANELS_CHANNEL_ID).catch(() => null);
         if (panelsChannel) {
             const messages = await panelsChannel.messages.fetch({ limit: 10 });
@@ -372,7 +374,7 @@ client.once('clientReady', async () => {
             }
         }
 
-        // --- Deployment: Training Request Portal Panel ---
+        // --- Deployment: Updated Training Request Portal Panel ---
         const trainingChannel = await client.channels.fetch(TRAINING_CHANNEL_ID).catch(() => null);
         if (trainingChannel) {
             const messages = await trainingChannel.messages.fetch({ limit: 10 });
@@ -381,7 +383,13 @@ client.once('clientReady', async () => {
             if (!alreadySent) {
                 const trainingEmbed = new EmbedBuilder()
                     .setTitle("⚔️ Training Request System")
-                    .setDescription("Welcome to the official staff orientation and instruction portal!\n\nTo request an interactive walkthrough or scheduled study session, use the selection prompt below to match your assignment type.\n\n**Available Tracks:**\n• **Mod Training (MT):** Command orientations & active mock drills.\n• **Staff Retraining:** Performance review & update workshops.")
+                    .setDescription(
+                        "Welcome to the official internal coaching and training network.\n\n" +
+                        "If you need an interactive platform review, run through rules, or require a refresher session, use the menu below to initiate a request channel.\n\n" +
+                        "**Available Tracks:**\n" +
+                        "• **Mod Training (MT):** Practical system overviews and mock moderation scenarios.\n" +
+                        "• **Staff Retraining:** Performance analysis workshops and policy updates."
+                    )
                     .setColor("#464DE0")
                     .setThumbnail(LOGO_URL)
                     .setFooter({ text: "Internal Staff Training Division", iconURL: LOGO_URL })
@@ -391,17 +399,17 @@ client.once('clientReady', async () => {
                     .setCustomId('training_request_select')
                     .setPlaceholder('Select a session type to initiate...')
                     .addOptions(
-                        new StringSelectMenuOptionBuilder().setLabel('Request Mod Training (MT)').setDescription('Schedule live command and protocol drills.').setValue('mod_training').setEmoji('⚔️'),
-                        new StringSelectMenuOptionBuilder().setLabel('Request Staff Retraining').setDescription('Fresh reviews on operational guidelines.').setValue('staff_retraining').setEmoji('🔄')
+                        new StringSelectMenuOptionBuilder().setLabel('Request Mod Training (MT)').setDescription('Schedule live command operations and protocol drills.').setValue('mod_training').setEmoji('⚔️'),
+                        new StringSelectMenuOptionBuilder().setLabel('Request Staff Retraining').setDescription('Review staff instructions and operational updates.').setValue('staff_retraining').setEmoji('🔄'),
+                        new StringSelectMenuOptionBuilder().setLabel('None / Clear Selection').setDescription('Reset the layout choice option.').setValue('clear_selection').setEmoji('❌')
                     );
 
                 const actionRow = new ActionRowBuilder().addComponents(trainingMenu);
                 await trainingChannel.send({ embeds: [trainingEmbed], components: [actionRow] });
-                console.log("✅ Training Request panel successfully deployed to channel 1512533850213978263.");
+                console.log("✅ Training Request panel with clear alternative option deployed successfully.");
             }
         }
 
-        // --- Deployment: Community Rules Panel ---
         const rulesChannel = await client.channels.fetch(RULES_CHANNEL_ID).catch(() => null);
         if (rulesChannel) {
             const messages = await rulesChannel.messages.fetch({ limit: 10 });
@@ -455,7 +463,7 @@ client.once('clientReady', async () => {
                     .setColor("#1A1A1A")
                     .setFooter({ text: "Server Rules", iconURL: "https://i.ibb.co/mr6BJdCs/Screenshot-2026-06-05-033110-removebg-preview.png" })
                     .setTimestamp();
-                await rulesChannel.send({ embeds: [rulesEmbed] });
+                rulesChannel.send({ embeds: [rulesEmbed] });
 
                 const acceptRow = new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
