@@ -1,53 +1,64 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-
-const client = new Client({ 
-    intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent 
-    ] 
-});
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: __dirname });
 });
 
-// Immediately rejects all submissions since the portal is locked down
 app.post('/api/submit', (req, res) => {
     res.status(403).json({ ok: false, result: "PORTAL_CLOSED" });
 });
 
-// Help command text responder
-client.on('messageCreate', async (message) => {
-    // Ignore other bots so it doesn't cause loops
-    if (message.author.bot) return;
+// Official Slash Command Listener
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
 
-    // Check if the message is exactly /help
-    if (message.content.toLowerCase() === '/help') {
-        await message.reply(".....uh.....um....mmmmmm, my master aint set me up gng, srry bout dat, TELL EM DOH>;3");
+    if (interaction.commandName === 'help') {
+        await interaction.reply(".....uh.....um....mmmmmm, my master aint set me up gng, srry bout dat, TELL EM DOH>;3");
     }
 });
 
-// Custom Status Setup
-client.once('ready', () => {
+// Register Slash Commands when the bot connects
+client.once('ready', async () => {
     console.log(`🤖 Logged in as ${client.user.tag}!`);
     
+    // Set Custom Status
     client.user.setPresence({
         activities: [{ 
             name: 'bot hosted by RyesBots', 
-            type: 3
+            type: 3 
         }],
         status: 'online', 
     });
+
+    // Register the command with Discord to make it show up in the list
+    const commands = [
+        new SlashCommandBuilder()
+            .setName('help')
+            .setDescription('Get help regarding the system')
+    ].map(command => command.toJSON());
+
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
+    try {
+        console.log('Started refreshing application (/) commands.');
+        await rest.put(
+            Routes.applicationCommands(client.user.id),
+            { body: commands },
+        );
+        console.log('Successfully reloaded application (/) commands.');
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 client.login(process.env.DISCORD_TOKEN);
