@@ -30,13 +30,14 @@ const client = new Client({
     ] 
 });
 
-// ====== CONFIGURATION (Reads from environment variables or uses your defaults) ======
+// ====== CONFIGURATION (Environment variables with your defaults) ======
 const REVIEW_CHANNEL_ID = process.env.REVIEW_CHANNEL_ID || "1512296048037593220"; 
 const STAFF_ROLE_ID = process.env.STAFF_ROLE_ID || "1512203928702292077"; 
 const HANDBOOK_CHANNEL_ID = process.env.HANDBOOK_CHANNEL_ID || "1512375254587146342";
 const PANELS_CHANNEL_ID = process.env.PANELS_CHANNEL_ID || "1512290092662784152";
+const RULES_CHANNEL_ID = process.env.RULES_CHANNEL_ID || "1512527598822097008";
 const LOGO_URL = "https://i.ibb.co/svL9rTpk/Screenshot-2026-06-05-033121-removebg-preview.png"; 
-// ===================================================================================
+// ======================================================================
 
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: __dirname });
@@ -156,8 +157,35 @@ client.on('interactionCreate', async (interaction) => {
         return;
     }
 
-    // 3. Handle Application Review Buttons (Accept / Decline)
+    // 3. Handle Buttons (Accept/Decline Apps & Rules Acceptance)
+   // 3. Handle Buttons (Accept/Decline Apps & Rules Acceptance)
     if (interaction.isButton()) {
+        // Handle Rules Acceptance and Role Assignment
+        if (interaction.customId === 'verify_rules_agree') {
+            await interaction.deferReply({ flags: [64] }); // 64 = Ephemeral (Only user sees it)
+
+            const member = interaction.member;
+            const VERIFIED_ROLE_ID = "1512203928702292068"; 
+
+            try {
+                // Check if the member already has the role to prevent redundant API calls
+                if (member.roles.cache.has(VERIFIED_ROLE_ID)) {
+                    await interaction.editReply({ content: "ℹ️ You are already verified and have access to the community channels!" });
+                    return;
+                }
+
+                // Assign the verified community role
+                await member.roles.add(VERIFIED_ROLE_ID);
+                await interaction.editReply({ content: "✅ Rules acknowledged! The community role has been assigned. Welcome to the server!" });
+                
+            } catch (err) {
+                console.error("Verification assignment error:", err);
+                await interaction.editReply({ content: "❌ Failed to assign the verification role. Make sure the bot's role is positioned *higher* than the role it is trying to give out in Server Settings!" });
+            }
+            return;
+        }
+
+        // Handle Application Workflow Buttons
         const [action, applicantId] = interaction.customId.split('_');
         const guild = interaction.guild;
 
@@ -203,6 +231,23 @@ client.on('interactionCreate', async (interaction) => {
             console.error("Failed to update button state:", err);
         }
     }
+
+            } else if (action === 'decline') {
+                if (applicant) {
+                    await applicant.send("❌ Thank you for applying, but your staff application has been declined at this time.").catch(() => null);
+                }
+
+                await interaction.update({
+                    content: `❌ **Application Declined** by ${interaction.user.tag}`,
+                    embeds: interaction.message.embeds,
+                    components: []
+                });
+            }
+
+        } catch (err) {
+            console.error("Failed to update button state:", err);
+        }
+    }
 });
 
 // Runs when bot establishes connection with Discord gateway
@@ -214,8 +259,9 @@ client.once('clientReady', async () => {
         status: 'online', 
     });
 
-    // Deploy System Panels Automatically on Startup if missing
+    // Deploy Panels Automatically on Startup if missing
     try {
+        // --- 1. STAFF HANDBOOK PANEL (Integrated Custom Template) ---
         const handbookChannel = await client.channels.fetch(HANDBOOK_CHANNEL_ID).catch(() => null);
         if (handbookChannel) {
             const messages = await handbookChannel.messages.fetch({ limit: 10 });
@@ -224,10 +270,21 @@ client.once('clientReady', async () => {
             if (!alreadySent) {
                 const handbookEmbed = new EmbedBuilder()
                     .setTitle("📖 sᴛᴀғғ-ʜᴀɴᴅʙᴏᴏᴋ")
-                    .setDescription("Welcome to the official staff team directory. All active staff members are required to read and follow the official training documentation.\n\n🔗 **[Click Here to Access the Staff Handbook](https://your-link-here.com)**\n\nPlease ensure you review recent policy updates and guidelines before starting your shift.")
+                    .setDescription(
+                        "Welcome to the official staff team directory. All active team members are strictly required to read, understand, and abide by our core operational rules:\n\n" +
+                        "1️⃣ **Team Communication**\n" +
+                        "Don’t make major administration decisions by yourself. Always consult other staff members first—clear communication is key to running this server.\n\n" +
+                        "2️⃣ **Professional Boundaries**\n" +
+                        "Do not bring outside personal issues or conflicts into the server. Personal dislikes are never a valid reason to issue moderational punishments.\n\n" +
+                        "3️⃣ **Zero Power Abuse**\n" +
+                        "Your permissions are given to protect the community, not to control it. Do not mute, kick, or ban users at your own personal will. Only punish individuals who explicitly violate community rules.\n\n" +
+                        "4️⃣ **Lead by Example**\n" +
+                        "As a representative of the team, remain calm and professional even when dealing with hostile members. Do not engage in toxic behavior, arguments, or profanity. If a user treats you poorly, handle it objectively via our official moderation system.\n\n" +
+                        "🔗 **[Click Here to Access the Full Staff Documentation](https://ryesden-staff-backend.onrender.com/)**"
+                    )
                     .setColor("#464DE0")
                     .setThumbnail(LOGO_URL)
-                    .setFooter({ text: "Staff Team Administration", iconURL: LOGO_URL })
+                    .setFooter({ text: "Staff Team Administration Guidelines", iconURL: LOGO_URL })
                     .setTimestamp();
 
                 await handbookChannel.send({ embeds: [handbookEmbed] });
@@ -235,13 +292,13 @@ client.once('clientReady', async () => {
             }
         }
 
+        // --- 2. TICKETS & APPLICATION LINK PANEL ---
         const panelsChannel = await client.channels.fetch(PANELS_CHANNEL_ID).catch(() => null);
         if (panelsChannel) {
             const messages = await panelsChannel.messages.fetch({ limit: 10 });
             const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "🎟️ Support Portal");
 
             if (!alreadySent) {
-                // 1. Send the primary dropdown support panel embed
                 const ticketEmbed = new EmbedBuilder()
                     .setTitle("🎟️ Support Portal")
                     .setDescription("Need assistance? Select the category that best matches your issue from the dropdown menu below.\n\n⚠️ *Please only open one ticket at a time. Creating troll tickets may result in moderation action.*")
@@ -262,13 +319,68 @@ client.once('clientReady', async () => {
                 const actionRow = new ActionRowBuilder().addComponents(selectMenu);
                 await panelsChannel.send({ embeds: [ticketEmbed], components: [actionRow] });
 
-                // 2. Send the secondary web application link embed panel directly underneath it
                 const linkEmbed = new EmbedBuilder()
-                    .setDescription("📝 **Ready to join our team?**\nClick the link below to fill out your official staff application.\n\n🔗 **[Apply Here!](https://ryesden-staff-backend.onrender.com/)**")
+                    .setDescription("📝 **Ready to join our team?**\nClick the link below to fill out your official staff application directly on our secure web portal.\n\n🔗 **[Apply Here!](https://ryesden-staff-backend.onrender.com/)**")
                     .setColor("#57FFEF");
 
                 await panelsChannel.send({ embeds: [linkEmbed] });
                 console.log("✅ Tickets and portal link panels deployed successfully.");
+            }
+        }
+
+        // --- 3. COMMUNITY RULES PANEL (20 Ordered Items with Section Symbols) ---
+        const rulesChannel = await client.channels.fetch(RULES_CHANNEL_ID).catch(() => null);
+        if (rulesChannel) {
+            const messages = await rulesChannel.messages.fetch({ limit: 10 });
+            const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "📜 COMMUNITY RULES & GUIDELINES");
+
+            if (!alreadySent) {
+                const rulesEmbed = new EmbedBuilder()
+                    .setTitle("📜 COMMUNITY RULES & GUIDELINES")
+                    .setDescription("Please review and follow the official regulations of the server. Failure to follow these codes will result in structural moderation actions.")
+                    .setImage("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F06%2Fd5%2Fda%2F06d5dac46000d258bcf1a3e15a714f4d.jpg&f=1&nofb=1&ipt=4f41f217d33ad3b91fde0670a657bac85108b2d3a2130d6e950a7860ea66daa3")
+                    .setColor("#1A1A1A")
+                    .addFields(
+                        { name: "§ 1.0.1", value: "Approach all community members with mutual respect. Harassment, insults, and personal attacks are strictly prohibited." },
+                        { name: "§ 1.0.2", value: "Do not start, encourage, or participate in drama, arguments, or toxic behavior within public text or voice channels." },
+                        { name: "§ 1.0.3", value: "Spamming, flooding chat rooms with repetitive characters/emojis, or text walling is prohibited." },
+                        { name: "§ 1.0.4", value: "Unsolicited self-promotion, advertising links, or direct messaging server invites to members will result in an immediate ban." },
+                        { name: "§ 1.0.5", value: "Do not post, upload, or link any explicit, offensive, or harmful material inside general channels." },
+                        { name: "§ 1.0.6", value: "Trolling, provoking staff, or intentionally disrupting the peace of conversational areas is disallowed." },
+                        { name: "§ 1.0.7", value: "Do not utilize excessive sarcasm, slurs, or aggressive language aimed at degrading other users." },
+                        { name: "§ 1.0.8", value: "All actions, conversations, and hosted files must strictly comply with the global Discord Terms of Service." },
+                        { name: "§ 1.0.9", value: "Do not distribute, discuss, link, or promote software piracy, cracked applications, or illegal downloads." },
+                        { name: "§ 1.1.0", value: "Respect media release dates. Do not post spoilers regarding games, anime, or films within a two-week window of launch." },
+                        { name: "§ 1.1.1", value: "Do not share, promote, or detail methods regarding game exploits, online cheats, hacks, or trainers." },
+                        { name: "§ 1.1.2", value: "Keep text topics relevant to their designated channels (e.g., bot commands belong strictly inside the bot channel)." },
+                        { name: "§ 1.1.3", value: "Do not bypass filters or use alternative spelling variations to evade automoderation configurations." },
+                        { name: "§ 1.1.4", value: "Do not impersonate server developers, administrators, moderators, or high-profile public entities." },
+                        { name: "§ 1.1.5", value: "Mini-modding (acting as staff or issuing public ultimatums when you do not hold a staff position) is not permitted." },
+                        { name: "§ 1.1.6", value: "Do not continuously tag or mention staff members without an urgent, verifiable reason." },
+                        { name: "§ 1.1.7", value: "Keep all usernames, nicknames, status indicators, and profile avatars appropriate for a public space." },
+                        { name: "§ 1.1.8", value: "Voice channel soundboards, voice changers, and loud noises meant to disrupt active connections are banned." },
+                        { name: "§ 1.1.9", value: "Do not upload or execute script links meant to scrape data or extract private identity information from users." },
+                        { name: "§ 1.2.0", value: "Decisions made by senior administration regarding rule edge cases or interpretations remain final." }
+                    )
+                    .setFooter({ text: "Server Governance Code", iconURL: LOGO_URL })
+                    .setTimestamp();
+
+                await rulesChannel.send({ embeds: [rulesEmbed] });
+
+                // Clean separate message text layout directly below the banner matrix
+                const acceptRow = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('verify_rules_agree')
+                        .setLabel('Accept')
+                        .setStyle(ButtonStyle.Success)
+                );
+
+                await rulesChannel.send({
+                    content: "I hereby confirm that I have read the rules, will follow them, and understand that I will face consequences if I violate them.",
+                    components: [acceptRow]
+                });
+
+                console.log("✅ 20-part rules matrix and verification agreement deployed.");
             }
         }
     } catch (e) {
