@@ -263,7 +263,7 @@ client.once('clientReady', async () => {
                         "As a representative of the team, remain calm and professional even when dealing with hostile members. Do not engage in toxic behavior, arguments, or profanity. If a user treats you poorly, handle it objectively via our official moderation system.\n\n" +
                         "5️⃣ **Confidential Information**\n" +
                         "Keep conversations inside official staff-restricted environments hidden from standard community populations.\n\n" +
-                        "🔗 **[Click Here to Access the Full Staff Documentation](https://ryesden-staff-backend.onrender.com/)**"
+                        "🔗 **[Click Here to Access the Full Staff Documentation](https://script.google.com/macros/s/AKfycbwVhP4PqG-hAjOjHjs2cTQjkeHNmAWODRR1lQRXJyJIjpM46H9eNvZhhtguwmmmbpd3VA/exec)**"
                     )
                     .setColor("#464DE0")
                     .setThumbnail(LOGO_URL)
