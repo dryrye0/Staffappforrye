@@ -19,6 +19,19 @@ app.post('/api/submit', (req, res) => {
     res.status(403).json({ ok: false, result: "PORTAL_CLOSED" });
 });
 
+// Custom Status Setup
+client.once('ready', () => {
+    console.log(`🤖 Logged in as ${client.user.tag}!`);
+    
+    client.user.setPresence({
+        activities: [{ 
+            name: 'bot hosted by RyesBots :3', 
+            type: 3
+        }],
+        status: 'online', 
+    });
+});
+
 client.login(process.env.DISCORD_TOKEN);
 
 const PORT = process.env.PORT || 3000;
