@@ -326,7 +326,10 @@ async function submit(){
     try {
         let res = await fetch("https://ryesden-staff-backend.onrender.com/api/submit",{
             method:"POST",
-            headers:{"Content-Type":"application/json"},
+            headers:{
+                "Content-Type":"application/json",
+                "x-api-key": "dd102109ddqqaassADMIN"
+            },
             body:JSON.stringify({
                 username: u1.value,
                 age: u2.value,
