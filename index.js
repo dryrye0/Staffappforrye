@@ -309,7 +309,6 @@ client.once('clientReady', async () => {
         const handbookChannel = await client.channels.fetch(HANDBOOK_CHANNEL_ID).catch(() => null);
         if (handbookChannel) {
             const messages = await handbookChannel.messages.fetch({ limit: 10 });
-            // FIXED: The title strings now perfectly match to avoid duplicate posts on bootup
             const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "📖 sᴛᴀғғ-ʜᴀɴᴅʙᴏᴏᴋ");
 
             if (!alreadySent) {
@@ -374,14 +373,16 @@ client.once('clientReady', async () => {
             }
         }
 
+        // --- FIXED: Exact String Matching to Avoid Request-MT Duplicate ---
+        const PANEL_TITLE = "⚔️ ʀᴇǫᴜᴇsᴛ-ᴍᴛ";
         const trainingChannel = await client.channels.fetch(TRAINING_CHANNEL_ID).catch(() => null);
         if (trainingChannel) {
             const messages = await trainingChannel.messages.fetch({ limit: 10 });
-            const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "⚔️ ʀᴇǫᴜᴇsᴛ-ᴍᴛ");
+            const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === PANEL_TITLE);
 
             if (!alreadySent) {
                 const trainingEmbed = new EmbedBuilder()
-                    .setTitle("⚔️ ʀᴇǫᴜᴇsᴛ-ᴍᴛ")
+                    .setTitle(PANEL_TITLE)
                     .setDescription(
                         "Welcome to the official internal coaching and training network.\n\n" +
                         "If you need an interactive platform review, run through rules, or require a refresher session, use the menu below to initiate a request channel.\n\n" +
@@ -405,7 +406,7 @@ client.once('clientReady', async () => {
 
                 const actionRow = new ActionRowBuilder().addComponents(trainingMenu);
                 await trainingChannel.send({ embeds: [trainingEmbed], components: [actionRow] });
-                console.log("✅ Training Request panel deployed successfully.");
+                console.log("✅ Training Request panel safely verified and deployed.");
             }
         }
 
