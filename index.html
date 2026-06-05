@@ -1,17 +1,16 @@
 <html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Portal - Application Form</title>
+    <title>Staff Portal - Closed</title>
 
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --accent-primary: #2563eb;
-            --accent-hover: #1d4ed8;
-            --border-color: #e2e8f0;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-danger: #ef4444;
+            --border-color: #334155;
         }
 
         * {
@@ -29,326 +28,76 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            overflow-x: hidden;
         }
 
         .container {
             background: var(--card-bg);
             width: 100%;
-            max-width: 650px;
-            border-radius: 8px;
+            max-width: 550px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            position: relative;
+            text-align: center;
+        }
+
+        .error-code {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--accent-danger);
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            font-weight: 700;
         }
 
         h2 {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 8px;
-            color: #0f172a;
+            margin-bottom: 15px;
+            color: #ffffff;
         }
 
-        .subtitle {
+        .message-box {
+            background-color: #7f1d1d33;
+            border: 1px solid #f8717144;
+            color: #f87171;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .contact-info {
             font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        label {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #334155;
-        }
-
-        input, textarea {
-            background: #ffffff;
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 10px 14px;
-            font-family: inherit;
-            font-size: 15px;
-            border-radius: 6px;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .info-box {
-            background-color: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-            padding: 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: #475569;
-            margin-bottom: 25px;
-            cursor: pointer;
-        }
-
-        .checkbox-label input {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: var(--accent-primary);
-        }
-
-        button {
-            background: var(--accent-primary);
+        .username-tag {
+            background: #334155;
             color: #ffffff;
-            border: none;
-            padding: 12px 24px;
-            font-family: inherit;
-            font-size: 15px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
             font-weight: 600;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: background 0.15s ease;
-            width: 100%;
-        }
-
-        button:hover:not(:disabled) {
-            background: var(--accent-hover);
-        }
-
-        button:disabled {
-            background: #cbd5e1;
-            color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        #status {
-            margin-top: 15px;
-            font-size: 13px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .notification-center {
-            position: fixed;
-            top: 24px;
-            right: -340px; 
-            width: 320px;
-            background: #0f172a;
-            color: #ffffff;
-            padding: 16px 20px;
-            border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            z-index: 100;
-            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            border-left: 4px solid var(--accent-primary);
-        }
-
-        .notification-center.show {
-            right: 24px; 
-        }
-
-        .notification-header {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #38bdf8;
-        }
-
-        .notification-body {
-            font-size: 13px;
-            color: #94a3b8;
-            line-height: 1.4;
         }
     </style>
 </head>
 <body>
 
-<audio id="portalAudio" src="https://audio.jukehost.co.uk/019e9640-feea-7329-ba25-64d75a216ff0" preload="auto"></audio>
-
-<div class="notification-center" id="sideNotification">
-    <div class="notification-header" id="notifTitle">System Alert</div>
-    <div class="notification-body" id="notifBody">Initial setup message.</div>
-</div>
-
 <div class="container">
-    <h2>Community Staff Application</h2>
-    <p class="subtitle">Please fill out your details below to submit your staff registry application.</p>
-
-    <div class="form-row">
-        <div class="form-group">
-            <label for="u1">Discord User ID</label>
-            <input id="u1" placeholder="e.g. 1512203928702292077">
-        </div>
-        <div class="form-group">
-            <label for="u2">Age</label>
-            <input id="u2" type="number" placeholder="Your age">
-        </div>
+    <div class="error-code">ERR, CLOSED. 000</div>
+    <h2>Applications Closed</h2>
+    
+    <div class="message-box">
+        We are closed and not accepting applicants right now.
     </div>
 
-    <div class="form-group">
-        <label for="u3">Timezone</label>
-        <input id="u3" placeholder="e.g. EST / GMT+1">
+    <div class="contact-info">
+        Please contact the staff team, or the site's owner: <span class="username-tag">@dryrye</span> on Discord.
     </div>
-
-    <div class="form-group">
-        <label for="u4">Relevant Experience</label>
-        <textarea id="u4" placeholder="Describe any previous staffing or moderation roles..."></textarea>
-    </div>
-
-    <div class="form-group">
-        <label for="u5">Why would you like to join?</label>
-        <textarea id="u5" placeholder="Explain your motivation for joining our helper team..."></textarea>
-    </div>
-
-    <div class="info-box">
-        <strong>Important:</strong> Make sure your Discord User ID is correct. You can get this by turning on Developer Mode in Discord, right-clicking your profile, and selecting "Copy User ID".
-    </div>
-
-    <label class="checkbox-label">
-        <input type="checkbox" id="agree">
-        I agree to follow the community guidelines and team rules.
-    </label>
-
-    <button id="btn" onclick="submit()">Submit Application</button>
-
-    <div id="status"></div>
 </div>
 
-<script>
-function triggerSidePopup(title, message, headerColor = "#38bdf8") {
-    const notif = document.getElementById('sideNotification');
-    const notifTitle = document.getElementById('notifTitle');
-    const notifBody = document.getElementById('notifBody');
-    const audio = document.getElementById('portalAudio');
-
-    notifTitle.innerText = title;
-    notifTitle.style.color = headerColor;
-    notifBody.innerText = message;
-
-    notif.classList.add('show');
-
-    audio.currentTime = 0;
-    audio.play().catch(e => console.log("Audio playback blocked:", e));
-
-    setTimeout(() => {
-        notif.classList.remove('show');
-    }, 4000);
-}
-
-function initNotificationsOnInteraction() {
-    triggerSidePopup("API STATUS", "Loading API...", "#eab308");
-
-    setTimeout(() => {
-        triggerSidePopup("API STATUS", "Loaded. Systems operational.", "#4ade80");
-    }, 5000);
-
-    document.removeEventListener('click', initNotificationsOnInteraction);
-}
-
-document.addEventListener('click', initNotificationsOnInteraction);
-
-async function submit(){
-    let btn = document.getElementById("btn");
-    let status = document.getElementById("status");
-    let agreeCheckbox = document.getElementById("agree");
-
-    let u1 = document.getElementById("u1");
-    let u2 = document.getElementById("u2");
-    let u3 = document.getElementById("u3");
-    let u4 = document.getElementById("u4");
-    let u5 = document.getElementById("u5");
-
-    if(!u1.value || !u2.value || !u3.value || !u4.value || !u5.value){
-        status.style.color = "#dc2626";
-        status.innerText = "Error: Please fill out all required fields.";
-        triggerSidePopup("VALIDATION ERROR", "Form submission failed. Missing core required fields.", "#f87171");
-        return;
-    }
-
-    if(isNaN(u1.value)) {
-        status.style.color = "#dc2626";
-        status.innerText = "Error: Invalid User ID format. Numeric digits only.";
-        triggerSidePopup("FORMAT ERROR", "The provided User ID must contain numbers only.", "#f87171");
-        return;
-    }
-
-    if(!agreeCheckbox.checked){
-        status.style.color = "#dc2626";
-        status.innerText = "Error: You must accept the community guidelines.";
-        triggerSidePopup("DIRECTIVE REJECTED", "Guidelines checkbox confirmation required.", "#f87171");
-        return;
-    }
-
-    btn.disabled = true;
-    status.style.color = "#2563eb";
-    status.innerText = "Sending application data...";
-
-    try {
-        let res = await fetch("/api/submit",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                username: u1.value,
-                age: u2.value,
-                timezone: u3.value,
-                experience: u4.value,
-                reason: u5.value
-            })
-        });
-
-        let data = await res.json();
-
-        if(data.ok) {
-            status.style.color = "#16a34a";
-            status.innerText = `Application submitted successfully! Status: ${data.result}`;
-            triggerSidePopup("TRANSMISSION SUCCESS", `Form successfully captured. Status: ${data.result}`, "#4ade80");
-        } else {
-            status.style.color = "#dc2626";
-            status.innerText = "Submission rejected by the server.";
-            triggerSidePopup("SERVER ERROR", "The hosting backend denied the dataset payload.", "#f87171");
-            btn.disabled = false;
-        }
-
-    } catch(err){
-        status.style.color = "#dc2626";
-        status.innerText = "Connection error: Unable to communicate with server.";
-        triggerSidePopup("PIPELINE FAILURE", "Could not establish a route to the hosting server.", "#f87171");
-        btn.disabled = false;
-    }
-}
-</script>
 </body></html>
