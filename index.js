@@ -1,119 +1,25 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages] });
-
-// ====== CONFIGURATION ======
-const REVIEW_CHANNEL_ID = "1512296048037593220"; 
-const STAFF_ROLE_ID = "1512203928702292077"; 
-const LOGO_URL = "https://i.ibb.co/svL9rTpk/Screenshot-2026-06-05-033121-removebg-preview.png"; 
-const HANDBOOK_CHANNEL_ID = "1512375254587146342"; 
-// ===========================
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: __dirname });
 });
 
-app.post('/api/submit', async (req, res) => {
-    const { username, age, timezone, experience, reason } = req.body;
-
-    if (!username || !age || !timezone || !experience || !reason || isNaN(username)) {
-        return res.status(400).json({ ok: false, result: "INVALID_DATA_PAYLOAD" });
-    }
-
-    try {
-        const channel = await client.channels.fetch(REVIEW_CHANNEL_ID);
-        if (!channel) return res.status(500).json({ ok: false, result: "Review channel not found." });
-
-        const embed = new EmbedBuilder()
-            .setTitle("📄 New Staff Application Submitted")
-            .setColor(0x2563eb)
-            .addFields(
-                { name: "Discord User ID", value: username, inline: true },
-                { name: "Age", value: age, inline: true },
-                { name: "Timezone", value: timezone, inline: true },
-                { name: "Relevant Experience", value: experience },
-                { name: "Motivation / Why join?", value: reason }
-            )
-            .setFooter({ text: `Applicant ID: ${username}` })
-            .setTimestamp();
-
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(`accept_${username}`)
-                .setLabel('Accept')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(`decline_${username}`)
-                .setLabel('Decline')
-                .setStyle(ButtonStyle.Danger)
-        );
-
-        await channel.send({ embeds: [embed], components: [row] });
-        res.status(200).json({ ok: true, result: "PENDING" });
-
-    } catch (error) {
-        console.error("Error processing application:", error);
-        res.status(500).json({ ok: false, result: "SERVER_ERROR" });
-    }
-});
-
-client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isButton()) return;
-
-    const [action, applicantId] = interaction.customId.split('_');
-    const guild = interaction.guild;
-
-    try {
-        const applicant = await client.users.fetch(applicantId).catch(() => null);
-
-        if (action === 'accept') {
-            const member = await guild.members.fetch(applicantId).catch(() => null);
-            if (member) {
-                await member.roles.add(STAFF_ROLE_ID);
-            }
-
-            if (applicant) {
-                const welcomeEmbed = new EmbedBuilder()
-                    .setTitle("🎉 Application Accepted!")
-                    .setDescription(`Welcome to the team! Your staff application has been approved.\n\nPlease head over to <#${HANDBOOK_CHANNEL_ID}> to read through our guidelines and begin training.`)
-                    .setColor(0x22c55e)
-                    .setThumbnail(LOGO_URL)
-                    .setTimestamp();
-
-                await applicant.send({ embeds: [welcomeEmbed] }).catch(() => null);
-            }
-
-            await interaction.update({
-                content: `✅ **Application Approved** by ${interaction.user.tag}`,
-                components: []
-            });
-
-        } else if (action === 'decline') {
-            if (applicant) {
-                await applicant.send("❌ Thank you for applying, but your staff application has been declined at this time.").catch(() => null);
-            }
-
-            await interaction.update({
-                content: `❌ **Application Declined** by ${interaction.user.tag}`,
-                components: []
-            });
-        }
-
-    } catch (err) {
-        console.error("Interaction error:", err);
-        await interaction.reply({ content: "Something went wrong processing this choice.", ephemeral: true }).catch(() => null);
-    }
+// Immediately rejects all submissions since the portal is locked down
+app.post('/api/submit', (req, res) => {
+    res.status(403).json({ ok: false, result: "PORTAL_CLOSED" });
 });
 
 client.login(process.env.DISCORD_TOKEN);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend live on port ${PORT}`));
+app.listen(PORT, () => console.log(`Backend live (Closed Mode) on port ${PORT}`));
