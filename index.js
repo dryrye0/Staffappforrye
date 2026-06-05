@@ -152,7 +152,6 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.customId === 'training_request_select') {
             const selectedValue = interaction.values[0];
 
-            // If user clicked "None", acknowledge silently, clear the selection look, and exit
             if (selectedValue === "clear_selection") {
                 await interaction.reply({ content: "🧹 Selection cleared. You can now choose a training session whenever you're ready!", flags: [64] });
                 return;
@@ -164,7 +163,7 @@ client.on('interactionCreate', async (interaction) => {
 
             try {
                 let sessionLabel = "mod-training";
-                let sessionTitle = "⚔️ Mod Training Session";
+                let sessionTitle = "⚔️ ᴍᴏᴅ ᴛʀᴀɪɴɪɴɢ sᴇssɪᴏɴ";
                 let sessionDesc = "A senior trainer (<@&" + SUPPORT_ROLE_ID + ">) will be with you shortly to handle your system setup and orientation.\n\n" +
                                   "**🎯 Here is what we will walk through:**\n" +
                                   "┌ 🛠️ Command configurations & log syntax.\n" +
@@ -173,7 +172,7 @@ client.on('interactionCreate', async (interaction) => {
 
                 if (selectedValue === "staff_retraining") {
                     sessionLabel = "retraining";
-                    sessionTitle = "🔄 Staff Retraining Session";
+                    sessionTitle = "🔄 sᴛᴀғғ ʀᴇᴛʀᴀɪɴɪɴɢ sᴇssɪᴏɴ";
                     sessionDesc = "Your request for retraining has been submitted. A team supervisor (<@&" + SUPPORT_ROLE_ID + ">) will be here to guide you.\n\n" +
                                   "**🎯 Here is what we will look over:**\n" +
                                   "┌ 📉 Performance corrections & adjustment reviews.\n" +
@@ -299,7 +298,7 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.once('clientReady', async () => {
-    console.log(`🦴 Logged in as ${client.user.tag}!`);
+    console.log(`🤖 Logged in as ${client.user.tag}!`);
     
     client.user.setPresence({
         activities: [{ name: 'bot hosted by RyesBots | V.1.3.2', type: 3 }],
@@ -310,11 +309,12 @@ client.once('clientReady', async () => {
         const handbookChannel = await client.channels.fetch(HANDBOOK_CHANNEL_ID).catch(() => null);
         if (handbookChannel) {
             const messages = await handbookChannel.messages.fetch({ limit: 10 });
+            // FIXED: The title strings now perfectly match to avoid duplicate posts on bootup
             const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "📖 sᴛᴀғғ-ʜᴀɴᴅʙᴏᴏᴋ");
 
             if (!alreadySent) {
                 const handbookEmbed = new EmbedBuilder()
-                    .setTitle("📖 sᴛᴀғғ-ʜᴀɴʙᴏᴏᴋ")
+                    .setTitle("📖 sᴛᴀғғ-ʜᴀɴᴅʙᴏᴏᴋ")
                     .setDescription(
                         "Welcome to the official staff team directory. All active team members are strictly required to read, understand, and abide by our core operational rules:\n\n" +
                         "1️⃣ **Team Communication**\n" +
@@ -374,15 +374,14 @@ client.once('clientReady', async () => {
             }
         }
 
-        // --- Deployment: Updated Training Request Portal Panel ---
         const trainingChannel = await client.channels.fetch(TRAINING_CHANNEL_ID).catch(() => null);
         if (trainingChannel) {
             const messages = await trainingChannel.messages.fetch({ limit: 10 });
-            const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "⚔️ Training Request System");
+            const alreadySent = messages.some(msg => msg.embeds.length > 0 && msg.embeds[0].title === "⚔️ ʀᴇǫᴜᴇsᴛ-ᴍᴛ");
 
             if (!alreadySent) {
                 const trainingEmbed = new EmbedBuilder()
-                    .setTitle("⚔️ Training Request System")
+                    .setTitle("⚔️ ʀᴇǫᴜᴇsᴛ-ᴍᴛ")
                     .setDescription(
                         "Welcome to the official internal coaching and training network.\n\n" +
                         "If you need an interactive platform review, run through rules, or require a refresher session, use the menu below to initiate a request channel.\n\n" +
@@ -397,16 +396,16 @@ client.once('clientReady', async () => {
 
                 const trainingMenu = new StringSelectMenuBuilder()
                     .setCustomId('training_request_select')
-                    .setPlaceholder('Select a session type to continue...')
+                    .setPlaceholder('Select a session type to initiate...')
                     .addOptions(
-                        new StringSelectMenuOptionBuilder().setLabel('Request Mod Training (MT)').setDescription('Schedule a training with an admin.').setValue('mod_training').setEmoji('🦴'),
-                        new StringSelectMenuOptionBuilder().setLabel('Request Staff Retraining').setDescription('Review.').setValue('staff_retraining').setEmoji('🐾'),
+                        new StringSelectMenuOptionBuilder().setLabel('Request Mod Training (MT)').setDescription('Schedule live command operations and protocol drills.').setValue('mod_training').setEmoji('⚔️'),
+                        new StringSelectMenuOptionBuilder().setLabel('Request Staff Retraining').setDescription('Review staff instructions and operational updates.').setValue('staff_retraining').setEmoji('🔄'),
                         new StringSelectMenuOptionBuilder().setLabel('None / Clear Selection').setDescription('Reset the layout choice option.').setValue('clear_selection').setEmoji('❌')
                     );
 
                 const actionRow = new ActionRowBuilder().addComponents(trainingMenu);
                 await trainingChannel.send({ embeds: [trainingEmbed], components: [actionRow] });
-                console.log("✅ Training Request panel with clear alternative option deployed successfully.");
+                console.log("✅ Training Request panel deployed successfully.");
             }
         }
 
@@ -477,7 +476,7 @@ client.once('clientReady', async () => {
                     components: [acceptRow]
                 });
 
-                console.log("✅ 20-part rules description block and verification agreement deployed successfully.");
+                console.log("✅ Rules description block deployed successfully.");
             }
         }
     } catch (e) {
