@@ -12,6 +12,12 @@ const REVIEW_CHANNEL_ID = "1512296048037593220";
 const STAFF_ROLE_ID = "1512203928702292077"; 
 
 app.post('/api/submit', async (req, res) => {
+    // Check if the custom password header matches what you set in Render
+    const incomingKey = req.headers['x-api-key'];
+    if (!incomingKey || incomingKey !== process.env.API_SECRET_KEY) {
+        return res.status(403).json({ ok: false, result: "UNAUTHORIZED_SPAM_BLOCKED" });
+    }
+
     const { username, age, timezone, experience, reason } = req.body;
 
     try {
@@ -31,7 +37,6 @@ app.post('/api/submit', async (req, res) => {
             .setFooter({ text: `Applicant ID: ${username}` })
             .setTimestamp();
 
-        // Create Accept and Decline Buttons
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId(`accept_${username}`)
@@ -52,7 +57,6 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
-// Handle Button Interactions (Accept / Decline)
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
@@ -94,7 +98,6 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// Log the bot in using the environment variable hidden in Render
 client.login(process.env.DISCORD_TOKEN);
 
 const PORT = process.env.PORT || 3000;
